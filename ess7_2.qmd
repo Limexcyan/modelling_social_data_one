@@ -1,0 +1,733 @@
+---
+title: "Słodkich snów! Związki jakości snu z poczuciem szczęścia i zdrowiem."
+format:
+  pdf:
+    documentclass: scrartcl
+    cite-method: biblatex
+    link-citations: true
+    bibliography: references.bib
+    biblio-style: apa
+author: Jagoda Pleskacz, Michał Stocki, Łukasz Gorczyca, Zbigniew Stettner
+execute: 
+  echo: false
+  output: false
+header-includes:
+  - \setlength{\parindent}{1.5em}
+  - \setlength{\parskip}{0pt}
+  - \usepackage{hyperref}
+  - \usepackage{xcolor}
+  # - \usepackage[autostyle=true]{csquotes}
+  # - \usepackage{booktabs}
+  # - \usepackage{longtable}
+  # - \usepackage{array}
+  # - \usepackage{multirow}
+  # - \usepackage{wrapfig}
+  # - \usepackage{float}
+  # - \usepackage{colortbl}
+  # - \usepackage{pdflscape}
+  # - \usepackage{tabu}
+  # - \usepackage{threeparttable}
+  # - \usepackage{threeparttablex}
+  # - \usepackage[normalem]{ulem}
+  # - \usepackage{makecell}
+
+---
+
+```{r}
+
+# BIBLIOTEKI
+
+library(rio)
+library(tidyverse)
+library(naniar)  #replace_with_na
+library(gmodels) #crosstables
+library(rcompanion) #V Cramera
+library(sjPlot) #plot_xtab
+library(lattice) #heatmap
+library(reshape2) #melt
+#install.packages("tinytex")
+#tinytex::install_tinytex()
+
+```
+
+Oświadczamy, że wszystkie analizy zebrane w tej pracy 
+wykonaliśmy i opisaliśmy samodzielnie
+
+{{< pagebreak >}}
+
+# Wstęp
+
+
+Przekonanie o korzystnym wpływie snu na nasze zdrowie jest powszechne. Znajduje ono również potwierdzenie w badaniach, chociaż ich wyniki nie są jednoznaczne. Metatanaliza różnych badań wskazuje, że zarówno zbyt długi jak i zbyt krótki sen może korelować z różnymi problemami zdrowotnymi [@gao2022]. Początkowo badania koncentrowały się na znaczeniu długości snu ale okazało się, że większe znaczenie ma jego jakość i głębokość [@kohyama2021]. Okazuje się, też, że jakość snu w większym stopniu wpływa na zdrowie psychiczne niż na zdrowie fizyczne [@clement-carbonell2021]. Wszystkie mierzone aspekty jakości snu wiążą się ze zdrowiem psychicznem podczas gdy ze zdrowiem fizycznym koreluje przede wszystkim subiektywna ocena dotycząca jakości snu oraz liczba przerw.
+
+
+Nasze doświadczenie mówi nam też, że odpowiedni sen wpływa na nasze chwilowe samopoczucie. Jeśli dobrze się wyśpimy mamy więcej energii, łatwiej nam się skoncentrować, itd. Ta intuicja również znajduje potwierdzenie w badaniach psychologicznych [@shin2018; @killgore2024] . Najczęściej mierzone są jednak chwilowe efekty, badania dotyczące długoterminowych skutków dobrej jakości snu są rzadsze [@kudrnacova2023].  
+
+
+Badania zarówno medyczne jak i psychologiczne na różne sposoby operacjonalizują zarówno jakość snu jak i zmienne zależne czyli poczucie szczęścia i poziom zdrowia a do ich pomiaru używają skomplikowanych skal, często drogiego sprzętu i złożonych analiz. W poniższej analizie chcieliśmy sprawdzić czy ta potoczna intuicja dotycząca znaczenia dobrego snu dla poczucia szczęścia oraz stanu zdrowia znajduje odzwierciedlenie w danych zebranych w ramach Europejskiego Sondażu Społecznego. Jedną z zalet tego zestawu danych jest jego prostota. Zamiast skomplikowanych skal badających wiele aspektów poszczególnych zjawisk badanym zadaje się proste pytania dotyczące samooceny ich zdrowia i szczęścia. Przynajmniej w przypadku zdrowia istnieją badania mówiące o tym, że tego rodzaju samoopisowe wskaźniki bardzo dobrze korelują z faktycznym stanem zdrowia [@maddox1973; @doiron2015].
+
+
+# Metodologia
+
+
+Do analizy wybrano dane zebrane w ramach Europejskiego Sondażu Społecznego (ESS) w roku 2014 (edycja 7), opublikowane w 2015 [@ess2025]. Według informacji na stronie Instytutu Filozofii i Socjologii PAN, czyli polskiego realizatora ESS [@ifispan], jest to jeden z największych i najważniejszych europejskich projektów badawczych w dziedzinie nauk społecznych. Jego podstawowym celem jest obserwacja zmian społecznych zachodzących w Europie: postaw wobec kluczowych problemów, zmian w systemach wartości i w zachowaniach.
+
+
+W Badaniu ESS7 wzięło udział ok. 50000 respondentów z 20 krajów europejskich i Izraela. W Polsce zrealizowano 1615 wywiadów (liczebność próby osób powyżej 15 roku życia, wylosowanej z operatu PESEL wyniosła 2715) Składało się z ok. 250 pytań. Część pytań podstawowych powtarza się w kolejnych edycjach, część pytań tematycznych występuje tylko w jedenj edycji. W ESS7 jednym z głównych tematów było zdrowie. 
+Badanie ESS jest realizowane przy zastosowaniu wywiadu osobistego PAPI (ankieter przeprowadza wywiady w mieszkaniach wylosowanych osób).  
+
+
+W poniższej anaizie wykorzystaliśmy dane zebrane w czasie badania ESS7 aby sprawdzić związki jakości snu z poczuciem szczęścia oraz oceną własnego zdrowia. Spodziewamy się, że im wyżej respondenci będą oceniać jakość swojego snu tym wyższy poziom szczęśćia będą deklarować oraz wyżej będą oceniać swój stan zdrowia. Hipoteza zerowa zakłada więc, że nie będzie związku między jakością snu i poziomem szczęścia tzn. osoby raportujące problemy ze snem nie będą różnić się od osób śpiących lepiej poziomem deklarowanego szczęścia. Podobnie w przypadku zdrowia, hipoteza zerowa zakładała brak związku między jakością snu a oceną własnego zdrowia.  
+
+
+Chcielibyśmy sprawdzić też jak na ewentualne związki tych zmiennych zmieniają się w zależności od wieku respondentów. Na zakończenie podejmiemy też próbę eksploracyjnej analizy danych i zobaczymy czy jakieś inne zmienne badane w ramach ESS7 mogą mieć związek z poczuciem szczęścia i zdrowiem.  
+
+
+
+```{r}
+# Wczytanie danych
+data7 <- import('ESS7e02_3.csv')
+dn <- data7 %>% select(gndr, agea, happy, health, slprl, sclmeet, rlgdgr, wkhtot)
+
+# Preprocessing (zastępowanie braków danych NA)
+dn2 <- dn %>% replace_with_na(replace=list(gndr=9,
+                                           agea=999,
+                                           happy=c(77,88,99),
+                                           health=c(7,8,9),
+                                           slprl=c(7,8,9),
+                                           sclmeet=c(77,88,99),
+                                           rlgdgr=c(77,88,99),
+                                           wkhtot=c(666,777,888,999)
+                                          )
+                              )
+
+# Zbiór danych na którym pracujemy
+dn2 <- na.omit(dn2)
+```
+
+
+# Wyniki
+
+## Jakość snu a poczucie szczęścia  
+
+
+Do analizy wybraliśmy następujące zmienne:  
+
+
+### Zmienna 1: *slprl_d*: Ocena jakości snu  
+
+
+Wartości: Dobry, Średni, Zły  
+Zmienna *slprl_d* powstała z przekształcenia oryginalnej zmiennej slprl za pomocą następującego polecenia:
+
+```{r}
+#| echo: true
+#| label: transform_slprl
+
+# Przekształcenie zmiennej slprl
+dn2 <- dn2 %>%
+  mutate(slprl_d=case_when(slprl == 1 ~"Dobra",
+                           slprl == 2 ~"Średnia",
+                           slprl > 2 ~"Zła"
+                           )
+         )
+```
+
+```{r}
+#| echo: false
+#| label: slprl_as_factor
+
+dn2$slprl_d = as.factor(dn2$slprl_d)
+```
+
+Oryginalna zmienna *slprl* zawierała odpowiedzi na pytanie przez ile czasu w poprzednim tygodniu respondent spał niespokojnie i przyjmowała następujące wartości:  
+<!---
+1 - Nigdy albo prawie nigdy  
+2 - Czasem  
+3 - Przez większość czasu  
+4 - Zawsze lub prawie zawsze  
+7 - Odmowa odpowiedzi  (zamieniono na brak danych (NA) i usunięto z analizy  
+8 - nie wiem  (zamieniono na brak danych (NA) i usunięto z analizy  
+9 - brak odpowiedzi  (zamieniono na brak danych (NA) i usunięto z analizy  
+--->
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{Wartość} & \textbf{Oznaczenie} & \textbf{Czy zachowane?} \\
+\hline
+1 & \text{Nigdy albo prawie nigdy} & \textcolor{green}{\text{tak}} \\
+2 & \text{Czasem} & \textcolor{green}{\text{tak}}  \\
+3 & \text{Przez większość czasu} & \textcolor{green}{\text{tak}}  \\
+4 & \text{Zawsze lub prawie zawsze} & \textcolor{green}{\text{tak}}  \\
+\hline
+7 & \text{Odmowa odpowiedzi} & \textcolor{red}{\text{nie}}  \\
+8 & \text{Nie wiem} & \textcolor{red}{\text{nie}} \\
+9 & \text{Brak odpowiedzi} & \textcolor{red}{\text{nie}} \\
+\hline
+\end{array}
+$$
+
+Przy przekształceniu zdecydowaliśmy się połączyć odpowiedzi 3 i 4 ponieważ, w naszej opinii różnica znaczeniowa między nimi jest minimalna.
+
+
+### Zmienna 2: *happy_d*: Czy jesteś szczęśliwy?
+
+
+Wartości: Tak, Nie  
+Zmienna *happy_d* powstała z przekształcenia oryginalnej zmiennej *happy* przez następujące polecenie:  
+
+```{r}
+#| echo: true
+#| label: transform_happy
+
+# Przekształcenie zmiennej happy
+dn2 <- dn2 %>%
+  mutate(happy_d=case_when(happy <= median(happy) ~"Nie",
+                           happy > median(happy) ~"Tak"
+                           )
+        )
+```
+
+```{r}
+#| echo: false
+#| label: happy_as_factor
+
+dn2$happy_d = as.factor(dn2$happy_d)
+```
+
+Oryginalna zmienna *happy* była wyrażona na skali od 0 (skrajnie nieszczęśliwy) do 10 (skrajnie szczęśliwy)  
+
+<!---
+Ponadto braki danych kodowano w następujący sposób:  
+77 - odmowa (zamieniono na brak danych (NA) i usunięto z analizy  
+88 - nie wiem (zamieniono na brak danych (NA) i usunięto z analizy  
+99 - brak odpowiedzi (zamieniono na brak danych (NA) i usunięto z analizy  
+--->
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{Wartość} & \textbf{Oznaczenie} & \textbf{Czy zachowane?} \\
+\hline
+0 & \text{Skrajnie nieszczęśliwy} & \textcolor{green}{\text{tak}} \\
+\vdots & \vdots & \textcolor{green}{\vdots} \\
+10 & \text{Skrajnie szczęśliwy} & \textcolor{green}{\text{tak}} \\
+\hline
+77 & \text{Odmowa} & \textcolor{red}{\text{nie}} \\
+88 & \text{Nie wiem} & \textcolor{red}{\text{nie}} \\
+99 & \text{Brak odpowiedzi} & \textcolor{red}{\text{nie}} \\
+\hline
+\end{array}
+$$
+
+
+Policzono test chi-kwadrat, pozwalający określić czy istnieje między tymi zmiennymi związek i czy liczebności poszczególnych kategorii obu zmiennych różnią się od sytuacji, gdyby takiej zależności nie było (czyli gdyby prawdziwa była hipoteza zerowa o braku związku między jakością snu i poczucia szczęścia). Podstawowe wymagania dotyczące zastosowania testu chi-kwadrat są spełnione ponieważ tabela krzyżowa zawiera liczebności poszczególnych kategorii zmiennych a wartości w komórkach tabeli przekraczają minimalną wartość (5).  
+
+
+Wartość statystyki chi-kwadrat wyniosła 607,43 i była istotna statystycznie (p<0.001). Oznacza to, że hipotezę H0 należy odrzucić i przyjąć hipotezę o istnieniu różnic między grupami raportującymi różną jakość snu w ich deklaracjach dotyczących poczucia szczęścia. Następnie policzyliśmy statystykę V Cramera, której celem jest oszacowanie siły związku między tymi zmiennymi. Jej wartość wyniosła 0,13 czyli związek ten jest słaby.  
+
+
+Poniższy wykres (@fig-prlhap) jest graficzną reprezentacją tabeli krzyżowej. Uwzględniono na nim procentowe wartości poszczególnych kategorii zmiennych. Pozwala on nieco bliżej przyglądnąć się charakterowi związku między obiema zmiennymi. Wraz ze zmniejszającą się jakością snu spada też częstość z jaką deklarowane jest poczucie szczęścia.  
+
+```{r}
+#| echo: false
+#| label: cross_tabela2
+
+tabela2 <- table(dn2$slprl_d, dn2$happy_d)
+CrossTable(tabela2, 
+           prop.r = TRUE,  
+           prop.c = TRUE,  
+           prop.t = TRUE,  
+           prop.chisq = FALSE)
+chisq_test2 <- chisq.test(tabela2)
+chisq_test2
+observed <- chisq_test2$observed
+expected <- chisq_test2$expected
+observed
+expected
+chisq_test2$p.value
+cv<-round(cramerV(tabela2),2)
+cv
+```
+
+```{r}
+#| output: true
+#| label: fig-prlhap
+#| fig.width: 10
+#| fig.height: 6
+
+plot_xtab(dn2$slprl_d, dn2$happy_d, margin = "row", bar.pos = "stack", 
+          show.n = FALSE, coord.flip = TRUE, 
+          legend.labels = c("Nie", "Tak"), 
+          legend.title = "Szczęście", 
+          show.legend = TRUE, show.summary = TRUE) +
+  ggtitle("Związek jakości snu z poczuciem szczęścia") +
+  xlab("Jakość snu") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, size = 18),
+        axis.title.y = element_text(size = 14),
+        legend.title = element_text(size = 12),
+        axis.text.y = element_text(size = 12)
+  )
+```
+
+## Interakcja jakości snu i wieku oraz poczucia szczęścia
+
+
+W kolejnym kroku analizy postanowiliśmy sprawdzić czy zależność, którą badaliśmy poprzednio w jakiś sposób różni się w poszczególnych grupach wiekowych. Na przykład, czy osoby starsze w większym bądź mniejszym stopniu wiążą swoje samopoczucie z jakością snu.  
+Do analizy włączyliśmy więc wiek respondentów. 
+
+
+### Zmienna 3: *agea_d* 
+
+
+Wartości: zmienna przyjmowała dwie wartości: "Młodsi" i "Starsi"  
+Zmienna *agea_d* powstała z przekształcenia oryginalnej zmiennej *agea* za pomocą następującego polecenia:
+
+```{r}
+#| echo: true
+#| label: transform_agea_d
+
+# Przekształcenie zmiennej agea
+dn2 <- dn2 %>%
+  mutate(agea_d=case_when(agea <= quantile(agea, 0.5) ~"Młodsi",
+                          agea > quantile(agea, 0.5) ~"Starsi"
+                          )
+         )
+```
+
+Zmienna *agea* przyjmowała wartości od 14 do 114. Mediana, według której podzielono oryginalną zmienną wyniosła 49,24.  
+Ponadto braki danych kodowano w następujący sposób:  
+999 - niedostępne (zamieniono na NA i usunięto z analizy)
+
+
+```{r}
+#| echo: false
+#| label: cross_table_next
+
+dn2$agh <- interaction(dn2$slprl_d, dn2$agea_d)
+tabela2 <- table(dn2$agh, dn2$happy_d)
+
+CrossTable(tabela2, 
+           prop.r = TRUE,  
+           prop.c = TRUE,  
+           prop.t = TRUE,  
+           prop.chisq = FALSE)
+
+chisq_test2 <- chisq.test(tabela2)
+chisq_test2
+observed <- chisq_test2$observed
+expected <- chisq_test2$expected
+observed
+expected
+chisq_test2$p.value
+cv<-round(cramerV(tabela2),2)
+cv
+```
+
+
+Po włączeniu wieku do analizy powtórzyliśmy poprzednią procedurę z uwzględnieniem interakcji wieku i jakości snu. Okazało się, że liczebności poszczególnych kategorii zmiennych różnią się od liczebności oczekiwanych gdyby zależności między zmiennymi nie było. Statystyka chi-kwadrat wyniosła 641 i była istotna statystycznie (p<0,001). V Cramera wyniosło 0,14 więc związek ten jest słaby. Poniższy wykres (@fig-interact) pozwala bliżej przyjrzeć się interakcji zmiennych.  
+
+
+```{r}
+#| output: true
+#| label: fig-interact
+#| fig.width: 10
+#| fig.height: 8
+
+plot_xtab(dn2$agh, dn2$happy_d, margin = "row", bar.pos = "stack", 
+          show.n = FALSE, coord.flip = TRUE, 
+          legend.labels = c("Nie", "Tak"), 
+          legend.title = "Szczęście", 
+          show.legend = TRUE, show.summary = TRUE) +
+  ggtitle("Związek jakości snu, wieku i poczucia szczęścia") +
+  xlab("Jakość snu i wiek") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.title.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  ) 
+
+```
+
+
+Wydaje się, że wprowadzenie dodatkowej zmiennej nie wnosi wiele nowego do analizy. Wielkość statystyki V Cramera nie zmieniła się. Wydaje się, że znaczenie dla poziomu deklarowanego szczęścia ma, przede wszystkim, jakość snu i podobny wzorzec powtarza się w obu grupach wiekowych, tzn. im gorsza jakość snu tym mniej szczęśliwi respondenci.  
+
+## Jakość snu a zdrowie
+
+Podobne analizy powtórzyliśmy dla samooceny własnego zdrowi jako zmiennej zależnej. 
+
+### Zmienna 4: *health_d*. Oena własnego stanu zdrowia. 
+Zmienna ta przyjmuje wartości "Dobrze" i "Żle". Powstała z przekształcenia oryginalnej zmiennej *health* za pomocą następującego polecenia:  
+
+```{r}
+table(dn2$agea_d)
+```
+
+```{r}
+#| echo: true
+#| label: health_transform
+
+# Przekształcenie zmiennej health
+dn2 <- dn2 %>%
+  mutate(health_d=case_when(health < 3 ~"Dobrze",
+                            health >= 3 ~"Żle"
+                            )
+         )
+```
+
+Zmienna *health* przyjmowała następujące wartości:  
+```{r}
+#|output: true
+```
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{Wartość} & \textbf{Oznaczenie} & \textbf{Czy zachowane?} \\
+\hline
+1 & \text{Bardzo dobrze} & \textcolor{green}{\text{tak}} \\
+2 & \text{Dobrze} & \textcolor{green}{\text{tak}} \\
+3 & \text{Przeciętnie} & \textcolor{green}{\text{tak}} \\
+4 & \text{Źle} & \textcolor{green}{\text{tak}} \\
+5 & \text{Bardzo źle} & \textcolor{green}{\text{tak}} \\
+\hline
+7 & \text{Odmowa odpowiedzi} & \textcolor{red}{\text{nie}} \\
+8 & \text{Nie wiem} & \textcolor{red}{\text{nie}} \\
+9 & \text{Brak odpowiedzi} & \textcolor{red}{\text{nie}} \\
+\hline
+\end{array}
+$$
+
+<!---
+1 - Bardzo dobrze  
+2 - Dobrze  
+3 - Przeciętnie  
+4 - Źle  
+5 - Bardzo źle  
+7 - Odmowa odpowiedzi (zastąpiono NA, usunięto z analizy)  
+8 - Nie wiem (zastąpiono NA, usunięto z analizy)  
+9 - Brak odpowiedzi (zastąpiono NA, usunięto z analizy)  
+--->
+
+```{r}
+#| echo: false
+#| label: cross_table_next_next
+
+tabela2 <- table(dn2$slprl_d, dn2$health_d)
+CrossTable(tabela2, 
+           prop.r = TRUE,  
+           prop.c = TRUE,  
+           prop.t = TRUE,  
+           prop.chisq = FALSE)
+chisq_test2 <- chisq.test(tabela2)
+chisq_test2
+observed <- chisq_test2$observed
+expected <- chisq_test2$expected
+observed
+expected
+chisq_test2$p.value
+cv<-round(cramerV(tabela2),2)
+cv
+```
+
+
+Wartość statystyki chi-kwadrat wyniosła 34082 i była ona istotna statystycznie na poziomie p<0,001. Oznacza to, że liczebności poszczególnych kategorii obu zmiennych różnią się od liczebności, których należałoby oczekiwać gdyby prawdziwa byłą hipoteza zerowa, czyli gdyby nie było różnic w jakości snu u osób o różnym stanie zdrowia. Ponownie, podstawowe wymagania dotyczące zastosowania testu chi-kwadrat są spełnione ponieważ tabela krzyżowa zawiera liczebności poszczególnych kategorii zmiennych a wartości w komórkach tabeli przekraczają minimalną wartość (5).  
+
+
+Następnie policzyliśmy statystykę V Cramera, która pozwala oszacować siłę związku między dwoma zmiennymi. Jej wartość wyniosła 0,25 czyli więcej niż w przypadku snu i poczucia szczęścia.  
+
+
+Wykres (@fig-prlhealth) pokazuje procentowe wartości poszczególnych kategorii zmiennych i pozwala dokładniej przeanalizować charakter związku między jakością snu i zdrowiem. Wraz ze zmniejszającą się 
+jakością snu spada częstość określania swojego stanu zdrowia jako dobry.  
+
+
+```{r}
+#| output: true
+#| label: fig-prlhealth
+#| fig.width: 10
+#| fig.height: 6
+
+plot_xtab(dn2$slprl_d, dn2$health_d, margin = "row", bar.pos = "stack", 
+          show.n = FALSE, coord.flip = TRUE, 
+          legend.labels = c("Dobre", "Złe"), 
+          legend.title = "Zdrowie", 
+          show.legend = TRUE, show.summary = TRUE) +
+  ggtitle("Związek jakości snu z poczuciem zdrowia") +
+  xlab("Jakość snu") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.title.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  )
+```
+
+## Interakcja jakości snu i wieku oraz stanu zdrowia
+
+
+W kolejnym kroku do analizy włączyliśmy, podobniie jak powyżej, wiek badanych osób aby sprawdzić w jakiś sposób, ewentualnie, różni się w poszczególnych grupach wiekowych związek jakości snu i zdrowia. Na przykład, czy osoby starsze w większym stopniu wiążą swoje fizyczne samopoczucie i stan zdrowia z jakością snu.
+
+
+```{r}
+#|echo: false
+#|label: cross_table_next3
+
+dn2$agh <- interaction(dn2$slprl_d, dn2$agea_d)
+tabela2 <- table(dn2$agh, dn2$health_d)
+
+CrossTable(tabela2, 
+           prop.r = TRUE,  
+           prop.c = TRUE,  
+           prop.t = TRUE,  
+           prop.chisq = FALSE)
+
+chisq_test2 <- chisq.test(tabela2)
+chisq_test2
+observed <- chisq_test2$observed
+expected <- chisq_test2$expected
+observed
+expected
+chisq_test2$p.value
+cv<-round(cramerV(tabela2),2)
+cv
+```
+
+
+Po włączeniu wieku do analizy powtórzyliśmy poprzednią procedurę z uwzględnieniem interakcji wieku i jakości snu. Okazało się, że liczebności poszczególnych kategorii zmiennych różnią się od liczebności oczekiwanych gdyby zależności między zmiennymi nie było. Statystyka chi-kwadrat wyniosła  i b4948 i była istotna statystycznie (p<0,001). V Cramera wyniosło 0,38 więc związek ten był znacząco silniejszy. Poniższy wykres (@fig-interact2) ilustruje tę interakcję.  
+
+
+```{r}
+#| output: true
+#| label: fig-interact2
+#| fig.width: 10
+#| fig.height: 8
+
+plot_xtab(dn2$agh, dn2$health_d, margin = "row", bar.pos = "stack", 
+          show.n = FALSE, coord.flip = TRUE, 
+          legend.labels = c("Dobre", "Złe"), 
+          legend.title = "Zdrowie", 
+          show.legend = TRUE, show.summary = TRUE) +
+  ggtitle("Związek jakości snu i wieku z poczuciem zdrowia") +
+  xlab("Jakość snu i wiek") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.title.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  )
+```
+```{r}
+#| output: true
+#| label: fig-sen
+#| fig.width: 10
+#| fig.height: 8
+
+plot_xtab(dn2$agh, dn2$health_d, margin = "row", bar.pos = "stack", 
+          show.n = FALSE, coord.flip = TRUE, 
+          legend.labels = c("Dobre", "Złe"), 
+          legend.title = "Zdrowie", 
+          show.legend = TRUE, show.summary = TRUE) +
+  ggtitle("Związek jakości snu i wieku z poczuciem zdrowia") +
+  xlab("Jakość snu i wiek") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.title.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  )
+```
+
+Wydaje się, że osoby starsze są bardziej wrażliwe na jakość snu. Wich przypadku pogorszenie jakości snu do wartości średnich wiąże się już z obniżeniem samooceny zdrowia. Złą jakość snu oznacza też w 3/4 przypadków zły stan zdrowia. U osób młodszych natomiast nie ma dużej różnicy w ocenie zdrowia między grupami określającymi jakość swojego snu jako dobry lub średni. Obniżenie oceny stanu zdrowia jest bardziej widoczne dopiero u osób naprawdę źle śpiących.
+
+
+## W poszukiwaniu szczęścia
+
+
+W poniższej analizie eksploracyjnej chcieliśmy sprawdzić jakie inne zmienne uwzględnione w badaniach ESS mogłyby mieć znaczenie dla poziomu odczuwanego szczęścia. Zdecydowaliśmy się włączyć do analizy następujące zmienne:
+
+
+### Zmienna 5: *sclmeet* - Częstość kontaktów społecznych z przyjaciółmi, krewnymi lub współpracownikami.  
+Zmienna *sclmeet* przyjmuje następujące wartości:  
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{Wartość} & \textbf{Oznaczenie} & \textbf{Czy zachowane?} \\
+\hline
+1 & \text{Nigdy} & \textcolor{green}{\text{tak}} \\
+2 & \text{Rzadziej niż w miesiącu} & \textcolor{green}{\text{tak}} \\
+3 & \text{Raz na miesiąc} & \textcolor{green}{\text{tak}} \\
+4 & \text{Kilka razy w miesiącu} & \textcolor{green}{\text{tak}} \\
+5 & \text{Raz na tydzień} & \textcolor{green}{\text{tak}} \\
+6 & \text{Kilka razy na tydzień} & \textcolor{green}{\text{tak}} \\
+7 & \text{Codziennie} & \textcolor{green}{\text{tak}} \\
+\hline
+77 & \text{Odmowa odpowiedzi} & \textcolor{red}{\text{nie}} \\
+88 & \text{Nie wiem} & \textcolor{red}{\text{nie}} \\
+99 & \text{Brak odpowiedzi} & \textcolor{red}{\text{nie}} \\
+\hline
+\end{array}
+$$
+
+<!---
+1 - Nigdy  
+2 - Rzadziej niż w miesiącu  
+3 - Raz na miesiąc  
+4 - Kilka razy w miesiącu  
+5 - Raz na tydzień  
+6 - Kilka razy na tydzień  
+7 - Codziennie  
+77 - Odmowa odpowiedzi (zastąpiono NA)  
+88 - Nie wiem (zastąpiono NA)  
+99 - Brak odpowiedzi (zastąpiono NA)  
+--->
+
+### Zmienna 6: *rlgdgr* - Religijność. Jak bardzo jesteś religijny/a?
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{Wartość} & \textbf{Oznaczenie} & \textbf{Czy zachowane?} \\
+\hline
+0 & \text{W ogóle nie religijny} & \textcolor{green}{\text{tak}} \\
+\vdots & \vdots & \textcolor{green}{\vdots} \\
+10 & \text{Bardzo religijny} & \textcolor{green}{\text{tak}} \\
+\hline
+77 & \text{Odmowa odpowiedzi} & \textcolor{red}{\text{nie}} \\
+88 & \text{Nie wiem} & \textcolor{red}{\text{nie}} \\
+99 & \text{Brak odpowiedzi} & \textcolor{red}{\text{nie}} \\
+\hline
+\end{array}
+$$
+
+<!---
+Zmienna przyjmowała wartości od 0 (w ogóle nie religijny) do 10 (bardzo religijny)    
+Ponadto braki danych oznaczono następująco:  
+77 - Odmowa odpowiedzi (zastąpiono NA, usunięto z analizy)  
+88 - Nie wiem (zastąpiono NA, usunięto z analizy)  
+99 - Brak odpowiedzi (zastąpiono NA, usunięto z analizy)  
+--->
+
+### Zmienna 7: *wkhtot* - Liczba godzin przepracowanych w poprzednim tygodniu
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{Wartość} & \textbf{Oznaczenie} & \textbf{Czy zachowane?} \\
+\hline
+n & \text{liczba całkowita od 0 do 168} & \textcolor{green}{\text{tak}}\\
+\hline
+666 & \text{Nie ma zastosowania} & \textcolor{red}{\text{nie}} \\
+777 & \text{Odmowa odpowiedzi} & \textcolor{red}{\text{nie}} \\
+888 & \text{Nie wiem} & \textcolor{red}{\text{nie}} \\
+999 & \text{Brak odpowiedzi} & \textcolor{red}{\text{nie}} \\
+\hline
+\end{array}
+$$
+
+<!---
+Braki danych oznaczono następująco:
+666 - Nie ma zastosowania (zastąpiono NA, usunięto z analizy)  
+777 - Odmowa odpowiedzi (zastąpiono NA, usunięto z analizy)  
+888 - Nie wiem (zastąpiono NA, usunięto z analizy)  
+999 - Brak odpowiedzi (zastąpiono NA, usunięto z analizy)  
+--->
+
+Poniższa tabela (@fig-hot) zawiera macierz korelacji poszczególnych zmiennych.Wyniki te wskazują, że, spośród zmiennych uwzględnionych w analizie, największe znaczenie dla poczucia szczęścia ma stan zdrowia (korelacja jest ujemna ponieważ niskie wartości zmiennej *health* oznaczają wyższą ocenę własnego zdrowia), ilość kontaktów społecznych a także jakość snu. Nie stwierdzono związku między poczuciem szczęścia a zaangażowaniem w pracę bądź religię. Te same zmienne (sen, i kontakty społeczne) korelują również z samooceną zdrowia. Interesujące, że mimo pogorszenia się wraz z wiekiem oceny własnego zdrowia nie zmienia się właściwie poczucie szczęścia.
+
+
+```{r}
+#|echo: false
+#|label: corr_melting
+
+summary(dn2$wkhtot)
+
+dn2_t<-dn2[,c(2,3,4,5,6,7,8)]
+str(dn2_t)
+corr_mat <- round(cor(dn2_t),2)  
+corr_mat
+
+melted_corr_mat <- melt(corr_mat)
+
+```
+
+
+```{r}
+#| output: true
+#| label: fig-hot
+#| fig.width: 10
+#| fig.height: 6
+
+ggplot(data = melted_corr_mat, 
+       aes(x = Var1, 
+           y = Var2, 
+           fill = value)) + 
+  geom_tile() +
+  geom_text(aes(Var2, 
+                Var1, 
+                label = value), 
+            color = "white", size = 3) +
+  theme_minimal() +
+  scale_fill_gradient(
+    name = "Korelacja",
+    low = "khaki2",
+    high = "khaki4",
+    scale = c(-1, 1)
+  ) + 
+  theme(
+    axis.text.x = element_text(angle = 45, 
+                               vjust = 1, 
+                               size = 9, 
+                               hjust = 1),
+    axis.text.y = element_text(size = 12),
+    axis.title.y = element_text(size = 14),
+    plot.title = element_text(hjust = 0.5, size = 16),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  ) +
+  xlab("") + 
+  ylab("") +
+  ggtitle("Macierz korelacji") 
+
+```
+
+ze średnią dla UE lub innego odpowiedniego terytorium.*
+
+### Dyskusja
+
+Mamy w tym wypadku do czynienia z badaniami korelacyjnymi więc nie możemy z całą pewnością mówić o kierunku tej zależności.
+
+
+Jak wynika z powyższej analizy , jakość snu ma związek z poczuciem szczęścia – wraz ze zmniejszającą się jakością snu, spada częstotliwość deklaracji poczucia szczęścia. Taki wniosek jest prawdziwy także w poszczególnych grupach wiekowych, gdzie zauważyć można, że im gorsza jakość snu, tym respondenci są mniej szczęśliwi. Wiek jest jednak dodatkowym czynnikiem, nie zmieniającym głównej zależności, a dodatkowo związek snu ze szczęściem, choć statystycznie istotny, jest na niskim poziomie (V Cramera = 0.13). Badania potwierdzają fakt, że istnieje związek między snem, a szczęściem, jednak nie jest on wystarczająco zbadany [@shin2018]. Zwraca się także uwagę, że związek satysfakcji z życia i snu może być dwukierunkowy. Poza związkiem snu ze szczęściem, w powyższej analizie sprawdzono inne zmienne, które mogą mieć z nim związek. Są nimi: ilość kontaktów społecznych i stan zdrowia, co także potwierdzają badania (Tamże).
+
+
+Analiza związku snu z oceną zdrowia również wskazuje, że między tymi zmiennymi istnieje związek, który jest większy niż w przypadku snu i szczęścia (V Cramera = 0.25). Zależność między zmiennymi wskazuje, że wraz ze zmniejszającą się jakością snu, spada częstość określania swojego stanu zdrowia jako dobry. Taka zależność szczególnie widoczna jest w przypadku osób starszych, gdzie zła jakość snu dużo bardziej wiąże się z niską oceną własnego zdrowia. Warto zaznaczyć, że samoocena zdrowia jest dobrym predyktorem faktyczego stanu zdrowia [@doiron2015]. Wyniki powyższej analizy odpowiadają innym badaniom, które wskazują, że zarówno zbyt długi, jak i zbyt krótki, ale także mało jakościowy sen ma związek ze stanem zdrowia, a w szczególności zdrowia psychicznego [@clement-carbonell2021; @gao2022; @kohyama2021].
+
+
+Wyniki powyższej analizy, potwierdzane przez inne prowadzone badania na temat snu i jego związku ze szczęściem oraz zdrowiem, są istotne z perspektywy praktyk społecznych. Istotne jest, aby edukować społeczeństwo na temat higieny snu oraz możliwych skutkach jego braku lub jego niskiej jakości.
+
+# Podsumowanie
+*W podsumowaniu należy przedstawić główne wnioski z badania oraz odpowiedzieć na cele i pytania badania. Krótkie podsumowanie, co zostało zrobione i jakie są wyniki.*
+
+# Bibliografia
+
+
+::: {#refs}
+:::
